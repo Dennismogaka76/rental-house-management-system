@@ -1,0 +1,104 @@
+from django.contrib import messages
+from django.db.models import Q, Sum, F
+from django.shortcuts import get_object_or_404, redirect
+from django.urls import reverse_lazy, reverse
+from django.views.generic import CreateView, ListView, DetailView, View, TemplateView
+
+from accounts.mixins import AdminRequiredMixin, TenantRequiredMixin
+from apartments.models import Apartment
+
+from .forms import RoomRequestForm, ReviewRequestForm
+from .models import RoomRequest, Tenancy
+from . import services
+
+
+class TenantRequestCreateView(TenantRequiredMixin, CreateView):
+    model = RoomRequest
+    form_class = RoomRequestForm
+    template_name = "tenancy/request_form.html"
+    success_url = reverse_lazy("tenancy:my_requests")
+
+    def form_valid(self, form):
+        form.instance.tenant = self.request.user
+        messages.success(self.request, "Room request submitted. Awaiting admin approval.")
+        return super().form_valid(form)
+
+
+class TenantRequestListView(TenantRequiredMixin, ListView):
+    template_name = "tenancy/my_requests.html"
+    context_object_name = "requests"
+    paginate_by = 20
+
+    def get_queryset(self):
+        return RoomRequest.objects.filter(tenant=self.request.user).select_related("apartment", "room")
+
+
+class AdminRequestListView(AdminRequiredMixin, ListView):
+    template_name = "tenancy/admin_requests.html"
+    context_object_name = "requests"
+    paginate_by = 25
+
+    def get_queryset(self):
+        qs = RoomRequest.objects.select_related("tenant", "apartment", "room")
+        status = self.request.GET.get("status")
+        if status:
+            qs = qs.filter(status=status)
+        return qs
+
+
+class ApproveRequestView(SudoRequiredMixin, AdminRequiredMixin, View):
+    def post(self, request, pk):
+        req = get_object_or_404(RoomRequest, pk=pk)
+        form = ReviewRequestForm(request.POST)
+        note = form.cleaned_data["admin_note"] if form.is_valid() else ""
+        try:
+            services.approve_room_request(req, request.user, note)
+            messages.success(request, f"Request approved. New tenancy created for {req.tenant.full_name}.")
+        except ValueError as e:
+            messages.error(request, str(e))
+        return redirect("tenancy:admin_requests")
+
+
+class RejectRequestView(SudoRequiredMixin, AdminRequiredMixin, View):
+    def post(self, request, pk):
+        req = get_object_or_404(RoomRequest, pk=pk)
+        form = ReviewRequestForm(request.POST)
+        note = form.cleaned_data["admin_note"] if form.is_valid() else ""
+        try:
+            services.reject_room_request(req, request.user, note)
+            messages.info(request, "Request rejected.")
+        except ValueError as e:
+            messages.error(request, str(e))
+        return redirect("tenancy:admin_requests")
+
+
+class AdminTenancyListView(AdminRequiredMixin, ListView):
+    template_name = "tenancy/admin_tenancies.html"
+    context_object_name = "tenancies"
+    paginate_by = 30
+
+    def get_queryset(self):
+        qs = (
+            Tenancy.objects.filter(active=True)
+            .select_related("tenant", "room", "room__apartment")
+        )
+        apt = self.request.GET.get("apartment")
+        if apt:
+            qs = qs.filter(room__apartment_id=apt)
+        q = self.request.GET.get("q")
+        if q:
+            qs = qs.filter(
+                Q(tenant__full_name__icontains=q)
+                | Q(tenant__phone_number__icontains=q)
+                | Q(tenant__id_number__icontains=q)
+                | Q(room__room_number__icontains=q)
+                | Q(room__apartment__name__icontains=q)
+            )
+        return qs.order_by(F("balance").desc())
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["apartments"] = Apartment.objects.all()
+        ctx["selected_apartment"] = self.request.GET.get("apartment", "")
+        ctx["q"] = self.request.GET.get("q", "")
+        return ctx

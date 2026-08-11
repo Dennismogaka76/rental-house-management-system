@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3 class="m-0"><i class="bi bi-chat-dots"></i>
+    {% if is_admin_user %}Conversation with {{ thread.tenant.full_name }}{% else %}Conversation with Admin{% endif %}
+  </h3>
+  <a href="{% url 'notifications:inbox' %}" class="btn btn-outline-light btn-sm">Back to inbox</a>
+</div>
+<div class="card mb-3"><div class="card-body" style="max-height:60vh; overflow-y:auto;">
+  {% for m in thread.messages.all %}
+    {% if m.sender_id == request.user.id %}
+      <div class="text-end mb-2">
+        <div class="d-inline-block p-2 rounded" style="background:#0d6efd;color:#fff;max-width:75%;">{{ m.body|linebreaksbr }}</div>
+        <div class="small text-muted">You · {{ m.created_at|date:"Y-m-d H:i" }}</div>
+      </div>
+    {% else %}
+      <div class="text-start mb-2">
+        <div class="d-inline-block p-2 rounded" style="background:#e2e8f0;color:#111;max-width:75%;">{{ m.body|linebreaksbr }}</div>
+        <div class="small text-muted">{{ m.sender.full_name|default:"System" }} · {{ m.created_at|date:"Y-m-d H:i" }}</div>
+      </div>
+    {% endif %}
+  {% empty %}
+    <div class="text-center text-muted">No messages yet.</div>
+  {% endfor %}
+</div></div>
+<div class="card"><div class="card-body">
+  <form method="post">{% csrf_token %}
+    {{ form.body }}
+    <button class="btn btn-primary mt-2"><i class="bi bi-send"></i> Send</button>
+  </form>
+</div></div>
+{% endblock %}

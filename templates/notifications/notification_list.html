@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3 class="m-0"><i class="bi bi-bell-fill"></i> Notifications</h3>
+  {% if notifications %}
+  <form method="post" action="{% url 'notifications:mark_all_read' %}">{% csrf_token %}
+    <button class="btn btn-outline-light btn-sm">Mark all as read</button>
+  </form>
+  {% endif %}
+</div>
+<div class="card">
+  <ul class="list-group list-group-flush">
+    {% for n in notifications %}
+      <li class="list-group-item d-flex justify-content-between align-items-start {% if not n.is_read %}bg-light{% endif %}">
+        <div class="me-3">
+          <div><strong>{{ n.title }}</strong>
+            <span class="badge bg-secondary ms-2">{{ n.get_category_display }}</span>
+            {% if not n.is_read %}<span class="badge bg-danger ms-1">NEW</span>{% endif %}
+          </div>
+          <div class="small text-muted">{{ n.created_at|date:"Y-m-d H:i" }}</div>
+          <div class="mt-1">{{ n.body|linebreaksbr }}</div>
+        </div>
+        <form method="post" action="{% url 'notifications:mark_read' n.pk %}">{% csrf_token %}
+          <button class="btn btn-sm btn-outline-primary">{% if n.url %}Open{% else %}Mark read{% endif %}</button>
+        </form>
+      </li>
+    {% empty %}
+      <li class="list-group-item text-center text-muted">No notifications yet.</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}

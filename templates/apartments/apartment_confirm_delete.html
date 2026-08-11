@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>Delete Apartment</h3>
+<div class="card"><div class="card-body"><form method="post">{% csrf_token %}
+  <p>Delete <strong>{{ object.name }}</strong>?</p>
+  <button class="btn btn-danger">Delete</button>
+  <a href="{% url 'apartments:apartment_list' %}" class="btn btn-outline-secondary">Cancel</a>
+</form></div></div>
+{% endblock %}

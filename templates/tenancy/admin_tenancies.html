@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block content %}
+<h3 class="mb-3">{% if balance_only %}Tenants with Outstanding Balances{% else %}Tenants{% endif %}</h3>
+<form class="row g-2 mb-3">
+  {% if balance_only %}<input type="hidden" name="balance" value="1">{% endif %}
+  <div class="col-md-4"><select name="apartment" class="form-select" onchange="this.form.submit()">
+    <option value="">All apartments</option>
+    {% for a in apartments %}<option value="{{ a.id }}" {% if selected_apartment == a.id|stringformat:'s' %}selected{% endif %}>{{ a.name }}</option>{% endfor %}
+  </select></div>
+  <div class="col-md-4"><input class="form-control" name="q" placeholder="Search name / phone / ID / room" value="{{ q }}"></div>
+  <div class="col-md-2"><button class="btn btn-outline-primary w-100">Search</button></div>
+</form>
+<div class="card"><div class="table-responsive"><table class="table mb-0">
+  <thead><tr>
+    <th>Tenant</th><th>Phone</th><th>Email</th><th>ID Number</th>
+    <th>Apartment</th><th>Room</th><th>Move In</th><th>Rent</th>
+    <th>Balance</th><th>Penalty</th><th>Total Due</th>
+    <th>Next Due</th><th>Last Payment</th><th>Status</th>
+    {% if balance_only %}<th>Action</th>{% endif %}
+  </tr></thead>
+  <tbody>{% for t in tenancies %}<tr>
+    <td>{{ t.tenant.full_name }}</td>
+    <td>{{ t.tenant.phone_number }}</td>
+    <td>{{ t.tenant.email|default:"-" }}</td>
+    <td>{{ t.tenant.id_number }}</td>
+    <td>{{ t.room.apartment.name }}</td>
+    <td>{{ t.room.room_number }}</td>
+    <td>{{ t.move_in_date }}</td>
+    <td>KES {{ t.monthly_rent }}</td>
+    <td>KES {{ t.balance }}</td>
+    <td>KES {{ t.penalty }}</td>
+    <td><strong>KES {{ t.total_due }}</strong></td>
+    <td>{{ t.next_due_date|default:"-" }}</td>
+    <td>{{ t.last_payment_date|default:"-" }}</td>
+    <td><span class="badge bg-{% if t.active %}success{% else %}secondary{% endif %}">{% if t.active %}Active{% else %}Inactive{% endif %}</span></td>
+    {% if balance_only %}
+    <td>
+      <form method="post" action="{% url 'tenancy:send_balance_reminder' t.pk %}" class="d-inline">
+        {% csrf_token %}
+        <button class="btn btn-sm btn-warning" title="Send payment reminder">
+          <i class="bi bi-bell"></i> Send Reminder
+        </button>
+      </form>
+    </td>
+    {% endif %}
+  </tr>{% empty %}<tr><td colspan="15" class="text-center text-muted p-3">No tenancies.</td></tr>{% endfor %}</tbody>
+</table></div></div>
+{% include "_pagination.html" %}
+{% endblock %}

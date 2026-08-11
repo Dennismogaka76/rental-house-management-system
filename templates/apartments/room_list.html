@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between mb-3">
+  <h3>Rooms</h3>
+  <a href="{% url 'apartments:room_add' %}" class="btn btn-primary"><i class="bi bi-plus"></i> Add Room</a>
+</div>
+<form class="mb-3"><div class="input-group">
+  <select class="form-select" name="apartment" onchange="this.form.submit()">
+    <option value="">All apartments</option>
+    {% for a in apartments %}<option value="{{ a.id }}" {% if request.GET.apartment == a.id|stringformat:'s' %}selected{% endif %}>{{ a.name }}</option>{% endfor %}
+  </select>
+</div></form>
+<div class="card"><div class="table-responsive"><table class="table mb-0">
+  <thead><tr><th>Apartment</th><th>Room</th><th>Floor</th><th>Type</th><th>Rent</th><th>Tenant</th><th></th></tr></thead>
+  <tbody>{% for r in rooms %}<tr>
+    <td>{{ r.apartment.name }}</td><td>{{ r.room_number }}</td><td>{{ r.floor }}</td>
+    <td>{{ r.get_room_type_display }}</td><td>KES {{ r.monthly_rent }}</td>
+    <td>{% if r.tenant %}{{ r.tenant.full_name }}{% else %}<span class="badge bg-secondary">vacant</span>{% endif %}</td>
+    <td><a href="{% url 'apartments:room_edit' r.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+        <a href="{% url 'apartments:room_delete' r.pk %}" class="btn btn-sm btn-outline-danger">Delete</a></td>
+  </tr>{% empty %}<tr><td colspan="7" class="text-center text-muted p-3">No rooms.</td></tr>{% endfor %}</tbody>
+</table></div></div>
+{% include "_pagination.html" %}
+{% endblock %}

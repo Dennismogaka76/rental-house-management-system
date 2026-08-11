@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block content %}
+<h3 class="mb-4">My Dashboard</h3>
+
+<div class="row g-3 mb-4" id="summary-cards">
+  <div class="col-md-4"><div class="card stat-card p-3"><small class="text-muted">Full Name</small><div class="stat-value">{{ request.user.full_name }}</div></div></div>
+  <div class="col-md-4"><div class="card stat-card p-3"><small class="text-muted">Phone Number</small><div class="stat-value">{{ request.user.phone_number }}</div></div></div>
+  <div class="col-md-4"><div class="card stat-card p-3"><small class="text-muted">Current Balance</small>
+      <div class="stat-value">KES {% if tenancy %}{% if tenancy.has_overpayment %}0{% else %}{{ tenancy.balance|add:tenancy.penalty }}{% endif %}{% else %}0{% endif %}</div>
+      <a href="#" class="btn btn-primary cta-profile mt-3 w-100" onclick="toggleProfile();return false;"><i class="bi bi-person-circle"></i> View Profile</a>
+  </div></div>
+</div>
+
+{% if tenancy and tenancy.has_overpayment %}
+<div class="card border-success mb-4" id="overpayments-section">
+  <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+    <strong><i class="bi bi-cash-coin"></i> Overpayments</strong>
+    <span class="badge bg-light text-success">Credit on account</span>
+  </div>
+  <div class="card-body">
+    <p class="mb-2">You have a credit balance of
+      <strong class="text-success fs-4">KES {{ tenancy.overpayment }}</strong> on your account.</p>
+    <p class="text-muted small mb-0">This amount will be automatically applied to your next rent invoice.</p>
+  </div>
+</div>
+{% endif %}
+
+{% if tenancy %}
+<div class="card mb-4">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <strong><i class="bi bi-box-arrow-right"></i> Vacate Room</strong>
+    {% if tenancy.vacate_date %}<span class="badge bg-warning text-dark">Vacate confirmed: {{ tenancy.vacate_date }}</span>{% endif %}
+  </div>
+  <div class="card-body">
+    <p class="mb-2">Planning to move out? Declare and confirm the date you will vacate.
+      Admin will be notified as soon as you confirm.</p>
+    <a href="{% url 'tenancy:vacate' %}" class="btn btn-outline-danger">
+      <i class="bi bi-calendar-x"></i>
+      {% if tenancy.vacate_date %}Update vacate date{% else %}Declare vacate date{% endif %}
+    </a>
+  </div>
+</div>
+{% endif %}
+
+<div id="profile-panel" style="display:none">
+  <div class="card mb-4"><div class="card-body">
+    <h5>Profile</h5>
+    <div class="row">
+      <div class="col-md-4"><strong>Full Name:</strong> {{ request.user.full_name }}</div>
+      <div class="col-md-4"><strong>Phone:</strong> {{ request.user.phone_number }}</div>
+      <div class="col-md-4"><strong>Email:</strong> {{ request.user.email|default:"-" }}</div>
+      <div class="col-md-4 mt-2"><strong>ID:</strong> {{ request.user.id_number }}</div>
+      {% if tenancy %}
+        <div class="col-md-4 mt-2"><strong>Apartment:</strong> {{ tenancy.room.apartment.name }}</div>
+        <div class="col-md-4 mt-2"><strong>Room:</strong> {{ tenancy.room.room_number }}</div>
+        <div class="col-md-4 mt-2"><strong>Monthly Rent:</strong> KES {{ tenancy.monthly_rent }}</div>
+        <div class="col-md-4 mt-2"><strong>Balance:</strong> KES {{ tenancy.balance }}</div>
+        <div class="col-md-4 mt-2"><strong>Penalty:</strong> KES {{ tenancy.penalty }}</div>
+        <div class="col-md-4 mt-2"><strong>Next Due:</strong> {{ tenancy.next_due_date|default:"-" }}</div>
+        <div class="col-md-4 mt-2"><strong>Last Payment:</strong> {{ tenancy.last_payment_date|default:"-" }}</div>
+        <div class="col-md-4 mt-2"><strong>Move-in:</strong> {{ tenancy.move_in_date }}</div>
+        <div class="col-md-4 mt-2"><strong>Status:</strong> {% if tenancy.active %}Active{% else %}Inactive{% endif %}</div>
+      {% else %}
+        <div class="col-12 mt-3 text-muted">No active tenancy. <a href="{% url 'tenancy:request_create' %}">Request a room</a>.</div>
+      {% endif %}
+    </div>
+  </div></div>
+</div>
+
+<div class="card mb-4">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <strong>Payment History</strong>
+    <a href="{% url 'payments:pay' %}" class="btn btn-success cta-pay"><i class="bi bi-phone"></i> Pay Rent Now</a>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-striped mb-0">
+      <thead><tr><th>Receipt</th><th>Date</th><th>Amount</th><th>Method</th><th>Balance After</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+      {% for p in payments %}
+        <tr>
+          <td>{{ p.reference_number }}</td>
+          <td>{{ p.transaction_date|date:"Y-m-d H:i" }}</td>
+          <td>KES {{ p.amount }}</td>
+          <td>{{ p.get_payment_method_display }}</td>
+          <td>KES {{ p.balance_after }}</td>
+          <td><span class="badge bg-{% if p.status == 'success' %}success{% elif p.status == 'pending' %}warning{% else %}danger{% endif %}">{{ p.get_status_display }}</span></td>
+          <td>{% if p.status == 'success' %}<a href="{% url 'payments:receipt' p.pk %}" class="btn btn-sm btn-outline-secondary">PDF</a>{% endif %}</td>
+        </tr>
+      {% empty %}<tr><td colspan="7" class="text-center text-muted p-3">No payments yet.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card border-info mb-4">
+  <div class="card-header bg-info text-white"><strong><i class="bi bi-headset"></i> Customer Care</strong></div>
+  <div class="card-body">
+    <p>Need help? Reach us any time:</p>
+    <div class="d-flex flex-wrap gap-2">
+      <a href="mailto:dennismogaka76@gmail.com" class="btn btn-outline-primary">
+        <i class="bi bi-envelope"></i> dennismogaka76@gmail.com
+      </a>
+      <a href="tel:+254769964274" class="btn btn-outline-success">
+        <i class="bi bi-telephone"></i> +254 769 964 274
+      </a>
+      <a href="{% url 'notifications:tenant_new_message' %}" class="btn btn-primary">
+        <i class="bi bi-chat-dots"></i> Send us a message
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function toggleProfile() {
+  const p = document.getElementById('profile-panel');
+  p.style.display = p.style.display === 'none' ? 'block' : 'none';
+}
+</script>
+{% endblock %}

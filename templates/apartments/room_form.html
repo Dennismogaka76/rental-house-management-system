@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<h3 class="mb-3">{% if object %}Edit{% else %}Add{% endif %} Room</h3>
+{% if all_full %}
+  <div class="alert alert-danger">
+    <strong>No more rooms can be added.</strong> Every apartment has reached its declared capacity.
+    Increase the apartment's total rooms first.
+  </div>
+{% endif %}
+<div class="card"><div class="card-body"><form method="post">{% csrf_token %}
+  {% for field in form %}<div class="mb-3"><label class="form-label">{{ field.label }}</label>{{ field }}
+    {% if field.errors %}<div class="text-danger small">{{ field.errors|join:", " }}</div>{% endif %}</div>{% endfor %}
+  {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors|join:", " }}</div>{% endif %}
+  <button class="btn btn-primary" {% if all_full %}disabled{% endif %}>Save</button>
+  <a href="{% url 'apartments:room_list' %}" class="btn btn-outline-secondary">Cancel</a>
+</form></div></div>
+{% endblock %}

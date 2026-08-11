@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<h3 class="mb-3">My Room Requests</h3>
+<div class="card"><div class="table-responsive"><table class="table mb-0">
+  <thead><tr><th>Date</th><th>Apartment</th><th>Room</th><th>Status</th><th>Admin Note</th></tr></thead>
+  <tbody>{% for r in requests %}<tr>
+    <td>{{ r.created_at|date:"Y-m-d H:i" }}</td>
+    <td>{{ r.apartment.name }}</td>
+    <td>{{ r.room.room_number }}</td>
+    <td><span class="badge bg-{% if r.status == 'pending' %}warning{% elif r.status == 'approved' %}success{% else %}danger{% endif %}">{{ r.get_status_display }}</span></td>
+    <td>{{ r.admin_note|default:"-" }}</td>
+  </tr>{% empty %}<tr><td colspan="5" class="text-center text-muted p-3">No requests.</td></tr>{% endfor %}</tbody>
+</table></div></div>
+{% include "_pagination.html" %}
+{% endblock %}

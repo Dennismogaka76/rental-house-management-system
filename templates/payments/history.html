@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<h3 class="mb-3">Payment History</h3>
+<div class="card"><div class="table-responsive"><table class="table mb-0">
+  <thead><tr><th>Receipt</th><th>Date</th><th>Amount</th><th>Method</th><th>M-Pesa Ref</th><th>Balance After</th><th>Status</th><th></th></tr></thead>
+  <tbody>{% for p in payments %}<tr>
+    <td>{{ p.reference_number }}</td>
+    <td>{{ p.transaction_date|date:"Y-m-d H:i" }}</td>
+    <td>KES {{ p.amount }}</td>
+    <td>{{ p.get_payment_method_display }}</td>
+    <td>{{ p.mpesa_receipt|default:"-" }}</td>
+    <td>KES {{ p.balance_after }}</td>
+    <td><span class="badge bg-{% if p.status == 'success' %}success{% elif p.status == 'pending' %}warning{% else %}danger{% endif %}">{{ p.get_status_display }}</span></td>
+    <td>{% if p.status == 'success' %}<a class="btn btn-sm btn-outline-secondary" href="{% url 'payments:receipt' p.pk %}">Receipt</a>{% endif %}</td>
+  </tr>{% empty %}<tr><td colspan="8" class="text-center text-muted p-3">No payments yet.</td></tr>{% endfor %}</tbody>
+</table></div></div>
+{% include "_pagination.html" %}
+{% endblock %}

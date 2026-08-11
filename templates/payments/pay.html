@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+<h3 class="mb-3">Pay Rent</h3>
+{% if tenancy %}
+<div class="card mb-3"><div class="card-body">
+  <div class="row">
+    <div class="col-md-3"><small class="text-muted">Room</small><div>{{ tenancy.room }}</div></div>
+    <div class="col-md-3"><small class="text-muted">Monthly Rent</small><div>KES {{ tenancy.monthly_rent }}</div></div>
+    <div class="col-md-3"><small class="text-muted">Balance</small><div>KES {{ tenancy.balance }}</div></div>
+    <div class="col-md-3"><small class="text-muted">Penalty</small><div>KES {{ tenancy.penalty }}</div></div>
+  </div>
+</div></div>
+<div class="card"><div class="card-body">
+  <form method="post">{% csrf_token %}
+    <div class="mb-3"><label class="form-label">Phone Number (M-Pesa)</label>
+      <input class="form-control" name="phone" value="{{ request.user.phone_number }}" required></div>
+    <div class="mb-3"><label class="form-label">Amount (KES)</label>
+      <input type="number" min="1" step="1" class="form-control" name="amount" value="{{ tenancy.total_due|floatformat:0 }}" required></div>
+    <button class="btn btn-success cta-pay w-100"><i class="bi bi-phone"></i> Pay via M-Pesa (STK Push)</button>
+  </form>
+  <p class="small text-muted mt-2 mb-0">You will receive a prompt on your phone. Enter your M-Pesa PIN to complete payment to Paybill {{ paybill }}, account {{ account_number }}.</p>
+</div></div>
+
+<div class="card mt-3"><div class="card-body">
+  <h5 class="card-title"><i class="bi bi-cash-coin"></i> Or pay manually with Lipa na M-Pesa</h5>
+  <ol class="mb-3">
+    <li>Go to <strong>M-PESA</strong> on your phone and select <strong>Lipa na M-Pesa</strong>.</li>
+    <li>Select <strong>Pay Bill</strong>.</li>
+    <li>Business Number: <strong>{{ paybill }}</strong></li>
+    <li>Account Number: <strong>{{ account_number }}</strong></li>
+    <li>Enter the amount, your M-Pesa PIN and confirm.</li>
+    <li>Paste the M-Pesa confirmation code below so we can match your payment.</li>
+  </ol>
+  <form method="post" action="{% url 'payments:manual_pay' %}" class="row g-2">{% csrf_token %}
+    <div class="col-md-5"><input class="form-control" name="mpesa_receipt" placeholder="M-Pesa code e.g. SGH4KJ9T2X" required></div>
+    <div class="col-md-4"><input type="number" min="1" step="1" class="form-control" name="amount" placeholder="Amount paid (KES)" required></div>
+    <div class="col-md-3"><button class="btn btn-outline-light w-100">Submit payment</button></div>
+  </form>
+  <p class="small text-muted mt-2 mb-0">Manually submitted payments update your balance once the admin verifies the code.</p>
+</div></div>
+{% else %}
+<div class="alert alert-warning">You have no active tenancy. Request a room first.</div>
+{% endif %}
+{% endblock %}

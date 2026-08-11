@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="text-center p-5">
+  <div class="spinner-border text-primary" role="status"></div>
+  <p class="mt-3 text-muted">Verified. Completing your action&hellip;</p>
+</div>
+<form id="replay-form" method="post" action="{{ path }}" style="display:none">
+  {% csrf_token %}
+  {% for name, value in fields %}
+    <input type="hidden" name="{{ name }}" value="{{ value }}">
+  {% endfor %}
+</form>
+<script>
+  document.getElementById('replay-form').submit();
+</script>
+{% endblock %}

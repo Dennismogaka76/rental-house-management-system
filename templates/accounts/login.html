@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block anon %}
+<div class="row justify-content-center">
+  <div class="col-md-5">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h3 class="mb-3">Sign in</h3>
+        <form method="post">{% csrf_token %}
+          {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+          <div class="mb-3">
+            <label class="form-label">Phone Number</label>
+            {{ form.username }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Password</label>
+            {{ form.password }}
+          </div>
+          <button class="btn btn-primary w-100" type="submit">Sign in</button>
+        </form>
+        <p class="text-center mt-3 mb-1"><a href="{% url 'accounts:password_reset' %}">Forgot password?</a></p>
+        <p class="text-center mb-0">No account? <a href="{% url 'accounts:register' %}">Register</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

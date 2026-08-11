@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<h3 class="mb-3">Room Requests</h3>
+<form class="mb-3"><select name="status" class="form-select w-auto d-inline-block" onchange="this.form.submit()">
+  <option value="">All</option>
+  <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>Pending</option>
+  <option value="approved" {% if request.GET.status == 'approved' %}selected{% endif %}>Approved</option>
+  <option value="rejected" {% if request.GET.status == 'rejected' %}selected{% endif %}>Rejected</option>
+</select></form>
+<div class="card"><div class="table-responsive"><table class="table mb-0">
+  <thead><tr><th>Date</th><th>Tenant</th><th>Phone</th><th>Apartment</th><th>Room</th><th>Rent</th><th>Status</th><th>Actions</th></tr></thead>
+  <tbody>{% for r in requests %}<tr>
+    <td>{{ r.created_at|date:"Y-m-d H:i" }}</td>
+    <td>{{ r.tenant.full_name }}</td>
+    <td>{{ r.tenant.phone_number }}</td>
+    <td>{{ r.apartment.name }}</td>
+    <td>{{ r.room.room_number }}</td>
+    <td>KES {{ r.room.monthly_rent }}</td>
+    <td><span class="badge bg-{% if r.status == 'pending' %}warning{% elif r.status == 'approved' %}success{% else %}danger{% endif %}">{{ r.get_status_display }}</span></td>
+    <td>
+      {% if r.status == 'pending' %}
+      <form method="post" action="{% url 'tenancy:request_approve' r.pk %}" class="d-inline">{% csrf_token %}
+        <button class="btn btn-sm btn-success">Approve</button></form>
+      <form method="post" action="{% url 'tenancy:request_reject' r.pk %}" class="d-inline">{% csrf_token %}
+        <button class="btn btn-sm btn-danger">Reject</button></form>
+      {% else %}-{% endif %}
+    </td>
+  </tr>{% empty %}<tr><td colspan="8" class="text-center text-muted p-3">No requests.</td></tr>{% endfor %}</tbody>
+</table></div></div>
+{% include "_pagination.html" %}
+{% endblock %}

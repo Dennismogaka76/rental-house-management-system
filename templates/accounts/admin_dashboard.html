@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block content %}
+<h3 class="mb-4">Admin Dashboard</h3>
+<div class="row g-3 mb-4">
+  <div class="col-md-3"><div class="card stat-card p-3">
+    <small class="text-muted text-uppercase">Total Apartments</small>
+    <div class="stat-value">{{ stats.total_apartments }}</div>
+  </div></div>
+  <div class="col-md-3"><div class="card stat-card p-3">
+    <small class="text-muted text-uppercase">Total Rooms</small>
+    <div class="stat-value">{{ stats.total_rooms }}</div>
+  </div></div>
+  <div class="col-md-3"><div class="card stat-card p-3">
+    <small class="text-muted text-uppercase">Occupied Rooms</small>
+    <div class="stat-value">{{ stats.occupied_rooms }}</div>
+  </div></div>
+  <div class="col-md-3"><div class="card stat-card p-3">
+    <small class="text-muted text-uppercase">Vacant Rooms</small>
+    <div class="stat-value">{{ stats.vacant_rooms }}</div>
+  </div></div>
+
+  <div class="col-md-3">
+    <a href="{% url 'tenancy:admin_tenancies' %}" class="text-decoration-none">
+      <div class="card stat-card p-3 border-primary" style="cursor:pointer">
+        <small class="text-muted text-uppercase">Tenants <i class="bi bi-box-arrow-up-right"></i></small>
+        <div class="stat-value text-primary">{{ stats.total_tenants }}</div>
+        <div class="small text-muted">View all tenants with full details</div>
+      </div>
+    </a>
+  </div>
+  <div class="col-md-3">
+    <a href="{% url 'tenancy:admin_tenancies' %}?balance=1" class="text-decoration-none">
+      <div class="card stat-card p-3 border-warning" style="cursor:pointer">
+        <small class="text-muted text-uppercase">Outstanding Balances <i class="bi bi-box-arrow-up-right"></i></small>
+        <div class="stat-value text-warning">KES {{ stats.outstanding_balances }}</div>
+        <div class="small text-muted">Click to view tenants with balances</div>
+      </div>
+    </a>
+  </div>
+  <div class="col-md-3"><div class="card stat-card p-3">
+    <small class="text-muted text-uppercase">Monthly Income</small>
+    <div class="stat-value">KES {{ stats.monthly_income }}</div>
+  </div></div>
+  <div class="col-md-3"><div class="card stat-card p-3">
+    <small class="text-muted text-uppercase">Late Payments</small>
+    <div class="stat-value">{{ stats.late_payments }}</div>
+  </div></div>
+</div>
+
+{% if overpaid_amount and overpaid_amount > 0 %}
+<div id="overpaidCarousel" class="carousel slide mb-4" data-bs-ride="carousel">
+  <div class="carousel-inner">
+    <div class="carousel-item active">
+      <div class="card bg-success text-white p-4 text-center">
+        <h5>Total Overpaid Rent</h5>
+        <div class="display-6">KES {{ overpaid_amount }}</div>
+        <div class="small">Credit balances on tenant accounts</div>
+      </div>
+    </div>
+    {% for t in overpaid_tenants %}
+    <div class="carousel-item">
+      <div class="card bg-success text-white p-4 text-center">
+        <h6>{{ t.tenant.full_name }}</h6>
+        <div class="h4">Credit: KES {{ t.overpayment }}</div>
+        <div class="small">{{ t.room.apartment.name }} - Room {{ t.room.room_number }}</div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  <button class="carousel-control-prev" type="button" data-bs-target="#overpaidCarousel" data-bs-slide="prev">
+    <span class="carousel-control-prev-icon"></span></button>
+  <button class="carousel-control-next" type="button" data-bs-target="#overpaidCarousel" data-bs-slide="next">
+    <span class="carousel-control-next-icon"></span></button>
+</div>
+{% endif %}
+
+<div class="row g-3">
+  <div class="col-md-12"><div class="card">
+    <div class="card-header"><strong>Recent Payments</strong></div>
+    <div class="table-responsive"><table class="table mb-0">
+      <thead><tr><th>Date</th><th>Tenant</th><th>Amount</th><th>Status</th></tr></thead>
+      <tbody>{% for p in recent_payments %}<tr>
+        <td>{{ p.transaction_date|date:"Y-m-d H:i" }}</td>
+        <td>{{ p.tenant.full_name }}</td>
+        <td>KES {{ p.amount }}</td>
+        <td>{{ p.get_status_display }}</td>
+      </tr>{% empty %}<tr><td colspan="4" class="text-center text-muted">No payments.</td></tr>{% endfor %}</tbody>
+    </table></div>
+  </div></div>
+</div>
+{% endblock %}

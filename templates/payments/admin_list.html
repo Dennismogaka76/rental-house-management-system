@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<h3 class="mb-3">All Payments</h3>
+<form class="mb-3"><select class="form-select w-auto d-inline-block" name="status" onchange="this.form.submit()">
+  <option value="">All statuses</option>
+  <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>Pending</option>
+  <option value="success" {% if request.GET.status == 'success' %}selected{% endif %}>Success</option>
+  <option value="failed" {% if request.GET.status == 'failed' %}selected{% endif %}>Failed</option>
+  <option value="cancelled" {% if request.GET.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+  <option value="timeout" {% if request.GET.status == 'timeout' %}selected{% endif %}>Timeout</option>
+</select></form>
+<div class="card"><div class="table-responsive"><table class="table mb-0">
+  <thead><tr><th>Date</th><th>Tenant</th><th>Room</th><th>Amount</th><th>Method</th><th>M-Pesa Ref</th><th>Status</th><th></th></tr></thead>
+  <tbody>{% for p in payments %}<tr>
+    <td>{{ p.transaction_date|date:"Y-m-d H:i" }}</td>
+    <td>{{ p.tenant.full_name }}</td>
+    <td>{% if p.tenancy %}{{ p.tenancy.room }}{% else %}-{% endif %}</td>
+    <td>KES {{ p.amount }}</td>
+    <td>{{ p.get_payment_method_display }}</td>
+    <td>{{ p.mpesa_receipt|default:"-" }}</td>
+    <td>{{ p.get_status_display }}</td>
+    <td>{% if p.status == 'pending' and p.mpesa_receipt %}
+      <form method="post" action="{% url 'payments:verify_manual' p.pk %}">{% csrf_token %}
+        <button class="btn btn-sm btn-success">Verify</button>
+      </form>{% endif %}</td>
+  </tr>{% empty %}<tr><td colspan="8" class="text-center text-muted p-3">No payments.</td></tr>{% endfor %}</tbody>
+</table></div></div>
+{% include "_pagination.html" %}
+{% endblock %}

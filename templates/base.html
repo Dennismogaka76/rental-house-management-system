@@ -1,0 +1,96 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Apartment Rental{% endblock %}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    body { background:#0d6efd; color:#ffffff; }
+    main { color:#ffffff; }
+    main h1, main h2, main h3, main h4, main h5, main h6, main p, main label, main small, main strong { color:#ffffff; }
+    main .card, main .card * { color:#212529; }
+    main .card small.text-muted { color:#6c757d !important; }
+    main .alert { color:#212529; }
+    /* stronger input contrast */
+    .form-control, .form-select { background:#ffffff; color:#111827; border:1px solid #94a3b8; }
+    .form-control:focus, .form-select:focus { border-color:#0d6efd; box-shadow:0 0 0 .25rem rgba(13,110,253,.25); }
+    .sidebar { min-height: 100vh; background:#0f172a; color:#cbd5e1; }
+    .sidebar a { color:#cbd5e1; text-decoration:none; display:flex; align-items:center; justify-content:space-between; padding:.6rem 1rem; border-radius:.4rem; }
+    .sidebar a.active, .sidebar a:hover { background:#1e293b; color:#fff; }
+    .sidebar .brand { color:#fff; font-weight:700; padding:1rem; font-size:1.2rem; }
+    .stat-card { border:0; border-radius:.75rem; }
+    .stat-card .stat-value { font-size:1.6rem; font-weight:700; }
+    .table thead { background:#e9ecef; }
+    .cta-pay { font-size:1.4rem; padding:1rem 2rem; box-shadow:0 6px 20px rgba(0,0,0,.25); }
+    .cta-profile { font-size:1.1rem; padding:.65rem 1.25rem; font-weight:600; }
+    .topbar { display:flex; justify-content:flex-end; align-items:center; gap:.75rem; margin-bottom:1rem; }
+    .bell-btn { position:relative; background:#ffffff; color:#0d6efd; border:0; border-radius:50%; width:44px; height:44px; display:inline-flex; align-items:center; justify-content:center; font-size:1.25rem; box-shadow:0 3px 8px rgba(0,0,0,.15); }
+    .bell-btn .badge { position:absolute; top:-4px; right:-4px; }
+  </style>
+</head>
+<body>
+{% if user.is_authenticated %}
+<div class="container-fluid">
+  <div class="row">
+    <nav class="col-md-2 sidebar p-0">
+      <div class="brand"><i class="bi bi-building"></i> Rental</div>
+      <div class="px-2">
+        <a href="{% url 'accounts:dashboard' %}"><i class="bi bi-speedometer2"></i> Dashboard</a>
+        {% if is_admin_user %}
+          <a href="{% url 'apartments:apartment_list' %}"><i class="bi bi-buildings"></i> Apartments</a>
+          <a href="{% url 'apartments:room_list' %}"><i class="bi bi-door-closed"></i> Rooms</a>
+          <a href="{% url 'tenancy:admin_tenancies' %}"><i class="bi bi-people"></i> Tenancies</a>
+          <a href="{% url 'tenancy:admin_requests' %}"><span><i class="bi bi-inbox"></i> Requests</span>{% if pending_requests_count %}<span class="badge bg-danger rounded-pill">{{ pending_requests_count }}</span>{% endif %}</a>
+          <a href="{% url 'payments:admin_list' %}"><i class="bi bi-cash-coin"></i> Payments</a>
+          <a href="{% url 'notifications:announcement_new' %}"><i class="bi bi-megaphone"></i> Send Notice</a>
+          <a href="{% url 'reports:index' %}"><i class="bi bi-bar-chart"></i> Reports</a>
+        {% else %}
+          {% if request.user.occupied_room %}
+            <a href="{% url 'tenancy:request_create' %}"><i class="bi bi-arrow-left-right"></i> Change Room</a>
+          {% else %}
+            <a href="{% url 'tenancy:request_create' %}"><i class="bi bi-plus-circle"></i> Request Room</a>
+          {% endif %}
+          <a href="{% url 'tenancy:my_requests' %}"><i class="bi bi-list-ul"></i> My Requests</a>
+          <a href="{% url 'payments:pay' %}"><i class="bi bi-phone"></i> Pay Rent</a>
+          <a href="{% url 'payments:history' %}"><i class="bi bi-receipt"></i> Payments</a>
+        {% endif %}
+        <a href="{% url 'notifications:inbox' %}"><span><i class="bi bi-chat-dots"></i> Messages</span>{% if unread_messages %}<span class="badge bg-danger rounded-pill">{{ unread_messages }}</span>{% endif %}</a>
+        <a href="{% url 'accounts:profile' %}"><i class="bi bi-person"></i> Profile</a>
+        <a href="{% url 'accounts:logout' %}"><i class="bi bi-box-arrow-right"></i> Logout</a>
+      </div>
+    </nav>
+    <main class="col-md-10 p-4">
+      <div class="topbar">
+        <a href="{% url 'notifications:list' %}" class="bell-btn" title="Notifications">
+          <i class="bi bi-bell-fill"></i>
+          {% if unread_notifications %}<span class="badge bg-danger rounded-pill">{{ unread_notifications }}</span>{% endif %}
+        </a>
+      </div>
+      {% if messages %}
+        {% for m in messages %}
+          <div class="alert alert-{{ m.tags|default:'info' }} alert-dismissible fade show">
+            {{ m }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
+{% else %}
+  <div class="container py-5">
+    {% if messages %}{% for m in messages %}
+      <div class="alert alert-{{ m.tags|default:'info' }}">{{ m }}</div>
+    {% endfor %}{% endif %}
+    {% block anon %}{% endblock %}
+  </div>
+{% endif %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{% static 'js/form-validation.js' %}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

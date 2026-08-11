@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+<h3 class="mb-3">Request a Room</h3>
+<div class="card"><div class="card-body">
+<form method="post">{% csrf_token %}
+  <div class="mb-3"><label class="form-label">Apartment</label>{{ form.apartment }}</div>
+  <div class="mb-3"><label class="form-label">Room (only vacant rooms shown)</label>
+    <select name="room" id="id_room" class="form-select"></select>
+  </div>
+  <div class="mb-3"><label class="form-label">Note (optional)</label>{{ form.note }}</div>
+  {% if form.errors %}<div class="alert alert-danger">{{ form.errors }}</div>{% endif %}
+  <button class="btn btn-primary">Submit Request</button>
+</form>
+</div></div>
+{% endblock %}
+{% block scripts %}
+<script>
+const apt = document.getElementById('id_apartment');
+const roomSel = document.getElementById('id_room');
+async function loadRooms() {
+  roomSel.innerHTML = '<option>Loading…</option>';
+  if (!apt.value) { roomSel.innerHTML = '<option value="">Select apartment first</option>'; return; }
+  const r = await fetch(`/apartments/api/${apt.value}/vacant-rooms/`);
+  const data = await r.json();
+  if (!data.rooms.length) { roomSel.innerHTML = '<option value="">No vacant rooms</option>'; return; }
+  roomSel.innerHTML = data.rooms.map(x =>
+    `<option value="${x.id}">Room ${x.room_number} — KES ${x.monthly_rent} (${x.room_type})</option>`
+  ).join('');
+}
+apt.addEventListener('change', loadRooms);
+loadRooms();
+</script>
+{% endblock %}

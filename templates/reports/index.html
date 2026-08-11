@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<h3 class="mb-3">Reports</h3>
+<div class="row g-3">
+{% for key, label in reports.items %}
+<div class="col-md-4"><div class="card p-3">
+  <div class="fw-bold mb-2">{{ label }}</div>
+  <div class="btn-group">
+    <a class="btn btn-sm btn-outline-primary" href="{% url 'reports:download' key 'pdf' %}">PDF</a>
+    <a class="btn btn-sm btn-outline-success" href="{% url 'reports:download' key 'xlsx' %}">Excel</a>
+    <a class="btn btn-sm btn-outline-secondary" href="{% url 'reports:download' key 'csv' %}">CSV</a>
+  </div>
+</div></div>
+{% endfor %}
+</div>
+{% endblock %}
