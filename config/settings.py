@@ -9,13 +9,16 @@ load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = config('SECRET_KEY')
+SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-development-key")
 
-DEBUG = config('DEBUG', default=False, cast=bool)
+DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
 ]
+
+if os.environ.get("RENDER_EXTERNAL_HOSTNAME"):
+    ALLOWED_HOSTS.append(os.environ["RENDER_EXTERNAL_HOSTNAME"])
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -136,7 +139,7 @@ MPESA_CONSUMER_SECRET = config("MPESA_CONSUMER_SECRET", default="")
 MPESA_PAYBILL = config("MPESA_PAYBILL", default="852648")
 # The account number tenants type when paying manually / used as AccountReference.
 MPESA_ACCOUNT_NUMBER = config("MPESA_ACCOUNT_NUMBER", default="105713")
-MPESA_BUSINESS_NAME = config("MPESA_BUSINESS_NAME", default="Apartment Rentals")
+MPESA_BUSINESS_NAME = config("MPESA_BUSINESS_NAME", default="POA Apartment Rentals")
 # Short code used to authenticate STK Push with Daraja (usually the same Paybill).
 MPESA_SHORTCODE = config("MPESA_SHORTCODE", default=MPESA_PAYBILL)
 MPESA_PASSKEY = config("MPESA_PASSKEY", default="")
