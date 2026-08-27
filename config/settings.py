@@ -77,19 +77,10 @@ TEMPLATES = [
 WSGI_APPLICATION = "config.wsgi.application"
 
 # ---- Database ----
-
-
 DATABASES = {
-    'default': dj_database_url.config(
-        
-    )
-}
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-
-    }
-}
+    "default": dj_database_url.config(
+        default=os.environ.get("DATABASE_URL")
+    )}
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
