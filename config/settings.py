@@ -143,7 +143,7 @@ MPESA_PASSKEY = config("MPESA_PASSKEY", default="")
 MPESA_CALLBACK_URL = config("MPESA_CALLBACK_URL", default="")
 
 # ---- Africa's Talking ----
-AT_USERNAME = config("AT_USERNAME", default="sandbox")
+AT_USERNAME = config("AT_USERNAME", default="production")
 AT_API_KEY = config("AT_API_KEY", default="")
 AT_SENDER_ID = config("AT_SENDER_ID", default="")
 
