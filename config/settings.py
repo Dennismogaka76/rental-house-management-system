@@ -128,7 +128,7 @@ EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
 DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="noreply@example.com")
 
 # ---- M-Pesa ----
-MPESA_ENV = config("MPESA_ENV", default="sandbox")
+MPESA_ENV = config("MPESA_ENV", default="production")  # or "sandbox"
 MPESA_CONSUMER_KEY = config("MPESA_CONSUMER_KEY", default="")
 MPESA_CONSUMER_SECRET = config("MPESA_CONSUMER_SECRET", default="")
 # --- Lipa na M-Pesa (Paybill) ---
