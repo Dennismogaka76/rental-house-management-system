@@ -140,7 +140,7 @@ MPESA_BUSINESS_NAME = config("MPESA_BUSINESS_NAME", default="POA Apartment Renta
 # Short code used to authenticate STK Push with Daraja (usually the same Paybill).
 MPESA_SHORTCODE = config("MPESA_SHORTCODE", default=MPESA_PAYBILL)
 MPESA_PASSKEY = config("MPESA_PASSKEY", default="")
-MPESA_CALLBACK_URL = config("MPESA_CALLBACK_URL", default="")
+MPESA_CALLBACK_URL = config("MPESA_CALLBACK_URL", default="https://rental-house-management-system-ajl4.onrender.com/payments/pay/")
 
 # ---- Africa's Talking ----
 AT_USERNAME = config("AT_USERNAME", default="production")
